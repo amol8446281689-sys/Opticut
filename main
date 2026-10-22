@@ -1,0 +1,334 @@
+```html
+<!DOCTYPE html>
+<html lang="mr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OptiCut Enterprise - AI Video Automation Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0b0f17',
+              panel: '#111827',
+              card: '#1f2937',
+              border: '#374151',
+              cyan: '#06b6d4',
+              purple: '#8b5cf6',
+              pink: '#ec4899',
+              emerald: '#10b981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #0b0f17; color: #f3f4f6; }
+    .code-font { font-family: 'Fira Code', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+    .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.35); }
+    .glow-purple { box-shadow: 0 0 15px rgba(139, 92, 246, 0.35); }
+    @keyframes pulse-border { 0%, 100% { border-color: rgba(6,182,212,0.4); } 50% { border-color: rgba(139,92,246,0.8); } }
+    .pulse-glow { animation: pulse-border 3s infinite; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-brand-dark text-slate-100 select-none">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="h-14 bg-brand-panel border-b border-brand-border px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-cyan to-brand-purple flex items-center justify-center shadow-lg glow-cyan">
+        <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-lg tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500">
+          OPTICUT <span class="text-xs px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-mono">PRO v3.2</span>
+        </h1>
+        <p class="text-[10px] text-slate-400 -mt-1 font-mono">Enterprise Open-Source AI Automator</p>
+      </div>
+    </div>
+
+    <!-- PRESET CONTROLS -->
+    <div class="flex items-center space-x-3 text-xs">
+      <!-- Category -->
+      <div class="flex items-center bg-brand-card px-2.5 py-1.5 rounded-lg border border-brand-border">
+        <span class="text-slate-400 mr-2"><i class="fa-solid fa-list-check text-cyan-400"></i> <span class="lang-mr">वर्ग</span> / Cat:</span>
+        <select id="categorySelect" onchange="changeCategory(this.value)" class="bg-transparent font-semibold text-cyan-300 focus:outline-none cursor-pointer">
+          <option value="Wedding" class="bg-brand-panel">💍 Wedding Promo (लग्न)</option>
+          <option value="Podcast" class="bg-brand-panel">🎙️ Podcast Highlights</option>
+          <option value="Trending Reel" selected class="bg-brand-panel">🔥 Trending Reels</option>
+          <option value="Business Promo" class="bg-brand-panel">💼 Business Ads</option>
+          <option value="V-Blog" class="bg-brand-panel">✈️ V-Blog Vlog</option>
+          <option value="Cinematic" class="bg-brand-panel">🎬 Cinematic Film Short</option>
+        </select>
+      </div>
+
+      <!-- Preset Engine -->
+      <div class="flex items-center bg-brand-card px-2.5 py-1.5 rounded-lg border border-brand-border">
+        <span class="text-slate-400 mr-2"><i class="fa-solid fa-robot text-purple-400"></i> Preset:</span>
+        <select id="presetSelect" onchange="togglePresetMode(this.value)" class="bg-transparent font-semibold text-purple-300 focus:outline-none cursor-pointer">
+          <option value="auto" class="bg-brand-panel">🤖 Auto-Make AI (स्वयंचलित)</option>
+          <option value="manual" class="bg-brand-panel">🛠️ Custom Manual (मॅन्युअल)</option>
+        </select>
+      </div>
+
+      <!-- Storage Selector -->
+      <div class="flex items-center bg-brand-card px-2.5 py-1.5 rounded-lg border border-brand-border hidden md:flex">
+        <i class="fa-solid fa-database text-emerald-400 mr-2"></i>
+        <span class="text-slate-300 font-mono">Workspace: Local Sync</span>
+      </div>
+
+      <!-- Language Toggle -->
+      <button onclick="toggleLanguage()" class="px-2.5 py-1.5 bg-brand-card border border-brand-border hover:border-cyan-500 rounded-lg text-xs font-semibold text-slate-200 transition">
+        <i class="fa-solid fa-language text-pink-400 mr-1"></i> <span id="langLabel">मराठी / ENG</span>
+      </button>
+
+      <!-- Settings -->
+      <button onclick="openModal('settingsModal')" class="p-2 bg-brand-card border border-brand-border hover:border-cyan-500 rounded-lg text-slate-300 transition">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE LAYOUT (3 COLUMNS) -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT PANEL: SCRIPT & STORYBOARD ENGINE -->
+    <aside class="w-80 bg-brand-panel border-r border-brand-border flex flex-col shrink-0">
+      <div class="p-3 border-b border-brand-border flex justify-between items-center bg-brand-card/50">
+        <h2 class="font-bold text-sm flex items-center text-cyan-400">
+          <i class="fa-solid fa-pen-nib mr-2"></i> <span class="lang-mr">स्क्रिप्ट आणि स्टोरीबोर्ड</span><span class="lang-en hidden">Script & Storyboard</span>
+        </h2>
+        <span class="text-[10px] bg-purple-950 text-purple-300 border border-purple-800 px-1.5 py-0.5 rounded">HedgeDoc Engine</span>
+      </div>
+
+      <div class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto">
+        <div class="flex justify-between items-center text-xs">
+          <label class="text-slate-400 font-medium">Prompt / Storyboard Text:</label>
+          <button onclick="generateAIScript()" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold flex items-center">
+            <i class="fa-solid fa-wand-sparkles mr-1"></i> Auto-Generate
+          </button>
+        </div>
+
+        <textarea id="scriptInput" class="w-full flex-1 bg-brand-card border border-brand-border rounded-lg p-3 text-xs code-font text-slate-200 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed" placeholder="इथे तुमची स्क्रिप्ट किंवा कल्पनेचे वर्णन लिहा..."></textarea>
+
+        <div class="bg-brand-card/70 border border-brand-border rounded-lg p-2.5 text-xs space-y-2">
+          <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider flex justify-between">
+            <span>Embedded Tools Active</span>
+            <i class="fa-solid fa-plug text-emerald-400"></i>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 bg-slate-800 rounded text-[10px] text-slate-300 font-mono">Fountain Markdown</span>
+            <span class="px-2 py-0.5 bg-slate-800 rounded text-[10px] text-slate-300 font-mono">Whisper Transcriber</span>
+          </div>
+        </div>
+
+        <!-- Template Selector Cards -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] text-slate-400 font-semibold uppercase">Smart Video Templates:</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="applyTemplate('cinematic')" class="p-2 bg-brand-card hover:bg-slate-800 border border-brand-border rounded-lg text-left transition">
+              <div class="font-bold text-cyan-300">🎬 Cinematic Glow</div>
+              <div class="text-[10px] text-slate-400">Slow cuts + Bokeh</div>
+            </button>
+            <button onclick="applyTemplate('hyper')" class="p-2 bg-brand-card hover:bg-slate-800 border border-brand-border rounded-lg text-left transition">
+              <div class="font-bold text-pink-300">⚡ Hyper Beat</div>
+              <div class="text-[10px] text-slate-400">Fast SFX + Glitch</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL: LIVE REAL-TIME CANVAS EDITOR -->
+    <main class="flex-1 bg-brand-dark flex flex-col justify-between p-3 relative overflow-hidden">
+      
+      <!-- Top Canvas Controls Bar -->
+      <div class="flex items-center justify-between bg-brand-panel px-3 py-1.5 rounded-lg border border-brand-border text-xs">
+        <div class="flex items-center space-x-2">
+          <span id="canvasStatus" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-bold text-slate-200" id="canvasTitle">LIVE 9:16 CANVAS PREVIEW</span>
+        </div>
+        <div class="flex items-center space-x-3 font-mono text-[11px]">
+          <span class="text-cyan-400" id="timeDisplay">00:00 / 00:15</span>
+          <button onclick="toggleAspectRatio()" class="px-2 py-0.5 bg-brand-card hover:bg-slate-700 border border-brand-border rounded text-slate-300">
+            Ratio: <span id="aspectRatioLabel">9:16</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Canvas Render Container -->
+      <div class="flex-1 flex items-center justify-center my-2 relative overflow-hidden">
+        <div id="canvasContainer" class="relative rounded-xl border-2 border-brand-border pulse-glow overflow-hidden shadow-2xl transition-all duration-300" style="aspect-ratio: 9/16; height: 100%; max-height: 480px;">
+          <canvas id="videoCanvas" class="w-full h-full bg-black cursor-pointer" onclick="togglePlay()"></canvas>
+          
+          <!-- Live Overlay Subtitle Layer -->
+          <div id="subtitlesOverlay" class="absolute bottom-10 left-0 right-0 px-4 text-center pointer-events-none transition-all">
+            <span class="bg-black/70 text-yellow-300 px-3 py-1 rounded-md text-sm font-bold tracking-wide border border-yellow-500/30 backdrop-blur-md shadow-lg" id="subText">
+              नमस्कार! स्वागत आहे OptiCut Enterprise मध्ये.
+            </span>
+          </div>
+
+          <!-- Play Overlay Icon -->
+          <div id="playOverlayBtn" onclick="togglePlay()" class="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer transition-opacity opacity-0 hover:opacity-100">
+            <div class="w-14 h-14 rounded-full bg-cyan-500/80 text-white flex items-center justify-center text-2xl shadow-lg transform hover:scale-110 transition">
+              <i class="fa-solid fa-play ml-1" id="playIcon"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playback Transport Controller -->
+      <div class="bg-brand-panel p-2.5 rounded-xl border border-brand-border flex items-center space-x-3">
+        <button onclick="togglePlay()" class="w-9 h-9 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg text-white font-bold flex items-center justify-center hover:opacity-90 transition">
+          <i class="fa-solid fa-play" id="mainPlayBtn"></i>
+        </button>
+        <button onclick="stopPlayback()" class="w-8 h-8 bg-brand-card hover:bg-slate-700 rounded-lg text-slate-300 flex items-center justify-center">
+          <i class="fa-solid fa-stop"></i>
+        </button>
+        
+        <input type="range" id="seekBar" min="0" max="100" value="0" oninput="seekVideo(this.value)" class="flex-1 accent-cyan-400 cursor-pointer">
+        
+        <div class="flex items-center space-x-2 border-l border-brand-border pl-3">
+          <i class="fa-solid fa-volume-high text-slate-400 text-xs"></i>
+          <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(this.value)" class="w-16 accent-purple-400 cursor-pointer">
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL: ADJUSTMENTS, COLOR & RENDER PARAMS -->
+    <aside class="w-80 bg-brand-panel border-l border-brand-border flex flex-col shrink-0">
+      <div class="p-3 border-b border-brand-border bg-brand-card/50 flex justify-between items-center">
+        <h2 class="font-bold text-sm text-purple-400 flex items-center">
+          <i class="fa-solid fa-sliders mr-2"></i> <span class="lang-mr">नियंत्रण आणि ट्यूनिंग</span><span class="lang-en hidden">Controls & Parameters</span>
+        </h2>
+        <span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.5 rounded font-mono">FFmpeg WASM</span>
+      </div>
+
+      <div class="p-3 flex-1 overflow-y-auto space-y-4 text-xs">
+        
+        <!-- Video Duration -->
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-semibold">समयावधी / Duration:</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="setDuration(15)" id="dur15" class="py-1.5 bg-brand-cyan/20 border border-brand-cyan text-cyan-300 font-bold rounded">15s Reel</button>
+            <button onclick="setDuration(30)" id="dur30" class="py-1.5 bg-brand-card border border-brand-border text-slate-400 font-semibold rounded hover:border-slate-500">30s Short</button>
+            <button onclick="setDuration(60)" id="dur60" class="py-1.5 bg-brand-card border border-brand-border text-slate-400 font-semibold rounded hover:border-slate-500">60s Full</button>
+          </div>
+        </div>
+
+        <!-- Resolution Quality -->
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-semibold">गुणवत्ता / Resolution:</label>
+          <select id="resSelect" class="w-full bg-brand-card border border-brand-border rounded p-2 text-slate-200 focus:outline-none focus:border-cyan-500">
+            <option value="1080p">1080p Full HD (60 FPS)</option>
+            <option value="4k">4K Ultra HD (60 FPS - High Bitrate)</option>
+            <option value="720p">720p HD (Fast Draft Rendering)</option>
+          </select>
+        </div>
+
+        <!-- Color Grading Presets -->
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-semibold">कलर ग्रेडिंग / Color Grade Filter:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="setColorFilter('cinematic')" class="p-2 bg-brand-card border border-amber-500/50 rounded text-left hover:bg-slate-800">
+              <span class="text-amber-400 font-bold block">Cinematic Gold</span>
+              <span class="text-[10px] text-slate-400">Warm film tones</span>
+            </button>
+            <button onclick="setColorFilter('cyberpunk')" class="p-2 bg-brand-card border border-cyan-500/50 rounded text-left hover:bg-slate-800">
+              <span class="text-cyan-400 font-bold block">Cyberpunk Neon</span>
+              <span class="text-[10px] text-slate-400">Blue & Pink Glow</span>
+            </button>
+            <button onclick="setColorFilter('moody')" class="p-2 bg-brand-card border border-purple-500/50 rounded text-left hover:bg-slate-800">
+              <span class="text-purple-400 font-bold block">Dark Moody</span>
+              <span class="text-[10px] text-slate-400">Deep shadows</span>
+            </button>
+            <button onclick="setColorFilter('vibrant')" class="p-2 bg-brand-card border border-emerald-500/50 rounded text-left hover:bg-slate-800">
+              <span class="text-emerald-400 font-bold block">Vibrant Boost</span>
+              <span class="text-[10px] text-slate-400">High contrast saturation</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VFX Intensity Slider -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between">
+            <label class="text-slate-300 font-semibold">VFX Intensity (Natron FX):</label>
+            <span id="vfxVal" class="text-cyan-400 font-mono">65%</span>
+          </div>
+          <input type="range" id="vfxSlider" min="0" max="100" value="65" oninput="updateVFXIntensity(this.value)" class="w-full accent-cyan-400 cursor-pointer">
+        </div>
+
+        <!-- Audio Ducking & Subtitles Options -->
+        <div class="space-y-2 pt-2 border-t border-brand-border">
+          <label class="flex items-center justify-between cursor-pointer">
+            <span class="text-slate-300 font-semibold">Auto-Audio Ducking (डकिंग)</span>
+            <input type="checkbox" id="duckingToggle" checked class="w-4 h-4 accent-purple-500">
+          </label>
+          <label class="flex items-center justify-between cursor-pointer">
+            <span class="text-slate-300 font-semibold">Auto Subtitles Overlay</span>
+            <input type="checkbox" id="subtitlesToggle" checked onchange="toggleSubtitles(this.checked)" class="w-4 h-4 accent-cyan-500">
+          </label>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- BOTTOM SECTION: EMBEDDED CONNECTORS & TIMELINE -->
+  <footer class="h-64 bg-brand-panel border-t border-brand-border flex flex-col shrink-0 z-10">
+    
+    <!-- 10 EMBEDDED SOFTWARE CONNECTOR ICONS GRID -->
+    <div class="bg-brand-dark/90 px-3 py-2 border-b border-brand-border overflow-x-auto flex items-center space-x-2 text-xs">
+      <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider pr-2 border-r border-brand-border shrink-0">
+        <i class="fa-solid fa-plug text-cyan-400 mr-1"></i> Connectors:
+      </span>
+
+      <button onclick="openConnector('sound')" class="flex items-center space-x-1.5 px-3 py-1 bg-brand-card hover:bg-slate-800 border border-brand-border hover:border-purple-500 rounded-lg shrink-0 transition">
+        <i class="fa-solid fa-music text-purple-400"></i>
+        <span>Sound Studio</span>
+        <span class="text-[9px] bg-purple-950 text-purple-300 px-1 rounded">Audacity</span>
+      </button>
+
+      <button onclick="openConnector('sfx')" class="flex items-center space-x-1.5 px-3 py-1 bg-brand-card hover:bg-slate-800 border border-brand-border hover:border-amber-500 rounded-lg shrink-0 transition">
+        <i class="fa-solid fa-volume-high text-amber-400"></i>
+        <span>SFX Library</span>
+        <span class="text-[9px] bg-amber-950 text-amber-300 px-1 rounded">FreeSFX</span>
+      </button>
+
+      <button onclick="openConnector('images')" class="flex items-center space-x-1.5 px-3 py-1 bg-brand-card hover:bg-slate-800 border border-brand-border hover:border-emerald-500 rounded-lg shrink-0 transition">
+        <i class="fa-solid fa-image text-emerald-400"></i>
+        <span>Stock Visuals</span>
+        <span class="text-[9px] bg-emerald-950 text-emerald-300 px-1 rounded">Pexels</span>
+      </button>
+
+      <button onclick="openConnector('vfx')" class="flex items-center space-x-1.5 px-3 py-1 bg-brand-card hover:bg-slate-800 border border-brand-border hover:border-cyan-500 rounded-lg shrink-0 transition">
+        <i class="fa-solid fa-wand-magic text-cyan-400"></i>
+        <span>VFX Compositor</span>
+        <span class="text-[9px] bg-cyan-950 text-cyan-300 px-1 rounded">Natron</span>
+      </button>
+
+      <button onclick="openConnector('clips')" class="flex items-center space-x-1.5 px-3 py-1 bg-brand-card hover:bg-slate-800 border border-brand-border hover:border-blue-500 rounded-lg shrink-0 transition">
+        <i class="fa-solid fa-film text-blue-400"></i>
+        <span>4K Video Clips</span>
+        <span class="text-[9px] bg-blue-950 text-blue-300 px-1 rounded">Mixkit</span>
+      </button>
+
+      <button onclick="openConnector('blender')" class="flex items-center space-x-1.5 px-3 py-1 bg-brand-card hover:bg-slate-800 border border-brand-border hover:border-orange-500 rounded-lg shrink-0 transition">
+        <i class="fa-solid fa-cube text-orange-400"></i>
+        <span>3D Graphics</span>
+        <span class="text-[9px] bg-orange-950 text-orange-300 px-1 rounded">Blender CLI</span>
+      </button>
+
+      <button onclick="openConnector('captions')" class="flex items-center s
